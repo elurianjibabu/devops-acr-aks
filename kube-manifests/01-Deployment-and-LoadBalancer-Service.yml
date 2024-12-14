@@ -15,7 +15,7 @@ spec:
         app: app1-nginx
     spec:
       containers:
-        - name: app1-nginx
+        - name: app1-nginx-new
           image: acrazuretemp.azurecr.io/custom2aksnginxapp1
           ports:
             - containerPort: 80
