@@ -1,0 +1,57 @@
+# Docker
+# Build and push an image to Azure Container Registry
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+- main
+
+resources:
+- repo: self
+
+variables:
+  # Container registry service connection established during pipeline creation
+  dockerRegistryServiceConnection: '175c9137-4fa2-4804-b117-3fe34fe90e03'
+  imageRepository: 'custom2aksnginxapp1'
+  containerRegistry: 'acrazuretemp.azurecr.io'
+  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
+  tag: '$(Build.BuildId)'
+
+  # Agent VM image name
+  vmImageName: 'ubuntu-latest'
+
+stages:
+- stage: Build
+  displayName: Build and push stage
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          $(tag)
+    
+    - bash: echo files in the default working directory ; ls -R $(System.DefaultWorkingDirectory)
+    - bash: echo files in the artifacts directory before push; ls -R $(Build.ArtifactStagingDirectory)
+    # task-2 : copy files (copy files from source directory to target folde)
+    # source directory: $(System.DefaultWorkingDirectory)/kube-manifasts
+    #target directory: $(Build.ArtifactStagingDirectory)
+    - task: CopyFiles@2
+      inputs:
+        SourceFolder: '$(System.DefaultWorkingDirectory)/kube-manifests'
+        Contents: '**'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+        OverWrite: true
+    # task-3 : Publish build artifacts (publish to build artifacts)
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'kube-manifests'
+        publishLocation: 'Container'
