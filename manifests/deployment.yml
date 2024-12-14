@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: nginximage 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginximage
+  template:
+    metadata:
+      labels:
+        app: nginximage 
+    spec:
+      containers:
+        - name: nginximage 
+          image: acrazuretemp.azurecr.io/nginximage
+          ports:
+          - containerPort: 80
